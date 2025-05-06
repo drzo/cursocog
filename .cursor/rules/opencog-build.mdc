@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+scan subdirectories for README.md files and consolidate in root README.md
+scan subdirectories for CMakeLists.txt files and consolidate in root CMakeLists.txt
+scan subdirectories for .circleci/config.yml files and consolidate in root .circleci/config.yml
+scan config, cmake, readme files for prerequisites and dependencies and download the dependency source files
+install and configure the necessary prerequisites and dependencies and verify all working ok
+configure the build files and shell scripts in the root folder to build and install the components in these folders:
+0. prerequisites
+1. cogutil
+2. atomspace
+3. atomspace-storage, atomspace-rocks, atomspace-pgres
+4. cogserver
+5. learn
+6. opencog
+7. sensory
+8. evidence
+9. docker (where required)
+10. additional components listed in repos.txt
+clone and install the clay ui system for c++ and implement
+
+make everything beautiful and amazing
