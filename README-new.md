@@ -148,4 +148,4 @@ OpenCog is an actively developed open-source project. Contributions are welcome!
 
 ## License
 
-OpenCog is licensed under the AGPL-3.0 license. See the [LICENSE](LICENSE) file for details.
+OpenCog is licensed under the AGPL-3.0 license. See the [LICENSE](LICENSE) file for details. 

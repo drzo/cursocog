@@ -1,0 +1,38 @@
+# OpenCog Additional Repositories
+# Format: repository_url [branch]
+
+# Core components
+https://github.com/opencog/cogutil master
+https://github.com/opencog/atomspace master
+https://github.com/opencog/atomspace-storage master
+https://github.com/opencog/atomspace-rocks master
+https://github.com/opencog/atomspace-pgres master
+https://github.com/opencog/cogserver master
+
+# Logic and reasoning components
+https://github.com/opencog/unify master
+https://github.com/opencog/ure master
+https://github.com/opencog/pln master
+https://github.com/opencog/attention master
+https://github.com/opencog/spacetime master
+https://github.com/opencog/lg-atomese master
+
+# Learning and language components
+https://github.com/opencog/learn master
+https://github.com/opencog/as-moses master
+
+# Perception and interfaces
+https://github.com/opencog/sensory master
+https://github.com/opencog/evidence master
+
+# Visualization tools
+https://github.com/opencog/visualization master
+
+# Additional experimental components
+# https://github.com/opencog/atomspace-cog master
+# https://github.com/opencog/atomspace-bridge master
+# https://github.com/opencog/atomspace-typescript master
+# https://github.com/opencog/atomspace-metta master
+# https://github.com/opencog/vision master
+# https://github.com/opencog/agi-bio master
+# https://github.com/opencog/cheminformatics master 

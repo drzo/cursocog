@@ -1,0 +1,195 @@
+#
+# Master OpenCog Build System CMake file
+#
+# General organization:
+# -- check for different compilers, OS'es
+# -- search for various required & optional libraries/tools
+# -- decide what to build based on above results
+# -- configure various config files
+# -- print pretty summary
+#
+
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
+
+PROJECT(opencog-all)
+
+# Set default include paths
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+# Default build type
+IF (CMAKE_BUILD_TYPE STREQUAL "")
+    SET(CMAKE_BUILD_TYPE Release)
+ENDIF (CMAKE_BUILD_TYPE STREQUAL "")
+
+MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+# Add definitions
+ADD_DEFINITIONS(
+    -DPROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    -DPROJECT_BINARY_DIR="${CMAKE_BINARY_DIR}"
+)
+
+# ===============================================================
+# Build options
+OPTION(BUILD_COGUTIL "Build CogUtil" ON)
+OPTION(BUILD_ATOMSPACE "Build AtomSpace" ON)
+OPTION(BUILD_UNIFY "Build Unify" ON)
+OPTION(BUILD_URE "Build URE" ON)
+OPTION(BUILD_ATOMSPACE_STORAGE "Build AtomSpace Storage" ON)
+OPTION(BUILD_ATOMSPACE_ROCKS "Build AtomSpace Rocks storage backend" ON)
+OPTION(BUILD_ATOMSPACE_PGRES "Build AtomSpace PostgreSQL storage backend" ON)
+OPTION(BUILD_COGSERVER "Build CogServer" ON)
+OPTION(BUILD_ATTENTION "Build AttentionBank" ON)
+OPTION(BUILD_SPACETIME "Build SpaceTime" ON)
+OPTION(BUILD_PLN "Build PLN" ON)
+OPTION(BUILD_LG_ATOMESE "Build LG-Atomese" ON)
+OPTION(BUILD_LEARN "Build Learn" ON)
+OPTION(BUILD_OPENCOG "Build OpenCog" ON)
+OPTION(BUILD_SENSORY "Build Sensory" ON)
+OPTION(BUILD_EVIDENCE "Build Evidence" ON)
+
+# ===============================================================
+# Check for existance of various required and optional packages
+IF(BUILD_COGUTIL)
+    MESSAGE(STATUS "Building CogUtil...")
+    ADD_SUBDIRECTORY(cogutil)
+ENDIF(BUILD_COGUTIL)
+
+# Only build additional components if CogUtil is available
+IF(BUILD_COGUTIL)
+    # AtomSpace requires CogUtil
+    IF(BUILD_ATOMSPACE)
+        MESSAGE(STATUS "Building AtomSpace...")
+        ADD_SUBDIRECTORY(atomspace)
+    ENDIF(BUILD_ATOMSPACE)
+
+    # Check if AtomSpace is available
+    IF(BUILD_ATOMSPACE)
+        # Unify requires AtomSpace
+        IF(BUILD_UNIFY)
+            MESSAGE(STATUS "Building Unify...")
+            ADD_SUBDIRECTORY(unify)
+        ENDIF(BUILD_UNIFY)
+
+        # URE requires AtomSpace and Unify
+        IF(BUILD_UNIFY AND BUILD_URE)
+            MESSAGE(STATUS "Building URE...")
+            ADD_SUBDIRECTORY(ure)
+        ENDIF(BUILD_UNIFY AND BUILD_URE)
+
+        # AtomSpace Storage backends
+        IF(BUILD_ATOMSPACE_STORAGE)
+            MESSAGE(STATUS "Building AtomSpace Storage...")
+            ADD_SUBDIRECTORY(atomspace-storage)
+        ENDIF(BUILD_ATOMSPACE_STORAGE)
+
+        IF(BUILD_ATOMSPACE_STORAGE AND BUILD_ATOMSPACE_ROCKS)
+            MESSAGE(STATUS "Building AtomSpace Rocks backend...")
+            ADD_SUBDIRECTORY(atomspace-rocks)
+        ENDIF(BUILD_ATOMSPACE_STORAGE AND BUILD_ATOMSPACE_ROCKS)
+
+        IF(BUILD_ATOMSPACE_STORAGE AND BUILD_ATOMSPACE_PGRES)
+            MESSAGE(STATUS "Building AtomSpace PostgreSQL backend...")
+            ADD_SUBDIRECTORY(atomspace-pgres)
+        ENDIF(BUILD_ATOMSPACE_STORAGE AND BUILD_ATOMSPACE_PGRES)
+
+        # CogServer requires AtomSpace
+        IF(BUILD_COGSERVER)
+            MESSAGE(STATUS "Building CogServer...")
+            ADD_SUBDIRECTORY(cogserver)
+        ENDIF(BUILD_COGSERVER)
+
+        # AttentionBank requires AtomSpace and CogServer
+        IF(BUILD_COGSERVER AND BUILD_ATTENTION)
+            MESSAGE(STATUS "Building AttentionBank...")
+            ADD_SUBDIRECTORY(attention)
+        ENDIF(BUILD_COGSERVER AND BUILD_ATTENTION)
+
+        # SpaceTime requires AtomSpace
+        IF(BUILD_SPACETIME)
+            MESSAGE(STATUS "Building SpaceTime...")
+            ADD_SUBDIRECTORY(spacetime)
+        ENDIF(BUILD_SPACETIME)
+
+        # PLN requires AtomSpace, Unify and URE
+        IF(BUILD_UNIFY AND BUILD_URE AND BUILD_PLN)
+            MESSAGE(STATUS "Building PLN...")
+            ADD_SUBDIRECTORY(pln)
+        ENDIF(BUILD_UNIFY AND BUILD_URE AND BUILD_PLN)
+
+        # LG-Atomese requires AtomSpace
+        IF(BUILD_LG_ATOMESE)
+            MESSAGE(STATUS "Building LG-Atomese...")
+            ADD_SUBDIRECTORY(lg-atomese)
+        ENDIF(BUILD_LG_ATOMESE)
+
+        # Learn requires AtomSpace
+        IF(BUILD_LEARN)
+            MESSAGE(STATUS "Building Learn...")
+            ADD_SUBDIRECTORY(learn)
+        ENDIF(BUILD_LEARN)
+
+        # OpenCog requires AtomSpace, CogServer, AttentionBank, and more
+        IF(BUILD_COGSERVER AND BUILD_ATTENTION AND BUILD_OPENCOG)
+            MESSAGE(STATUS "Building OpenCog core...")
+            ADD_SUBDIRECTORY(opencog)
+        ENDIF(BUILD_COGSERVER AND BUILD_ATTENTION AND BUILD_OPENCOG)
+
+        # Sensory requires AtomSpace
+        IF(BUILD_SENSORY)
+            MESSAGE(STATUS "Building Sensory...")
+            ADD_SUBDIRECTORY(sensory)
+        ENDIF(BUILD_SENSORY)
+
+        # Evidence requires AtomSpace
+        IF(BUILD_EVIDENCE)
+            MESSAGE(STATUS "Building Evidence...")
+            ADD_SUBDIRECTORY(evidence)
+        ENDIF(BUILD_EVIDENCE)
+    ENDIF(BUILD_ATOMSPACE)
+ENDIF(BUILD_COGUTIL)
+
+# Tests
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    FIND_PACKAGE(CxxTest)
+    IF(CXXTEST_FOUND)
+        MESSAGE(STATUS "CxxTest found, building tests")
+        ENABLE_TESTING()
+        ADD_CUSTOM_TARGET(check 
+            COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure)
+    ENDIF(CXXTEST_FOUND)
+ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+# Documentation
+FIND_PACKAGE(Doxygen)
+IF(DOXYGEN_FOUND)
+    MESSAGE(STATUS "Doxygen found, building documentation")
+    ADD_SUBDIRECTORY(doc)
+ENDIF(DOXYGEN_FOUND)
+
+# ===================================================================
+# Print summary
+MESSAGE(STATUS "")
+MESSAGE(STATUS "OpenCog build configuration summary:")
+MESSAGE(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS "  Components to build:")
+MESSAGE(STATUS "    CogUtil: ${BUILD_COGUTIL}")
+MESSAGE(STATUS "    AtomSpace: ${BUILD_ATOMSPACE}")
+MESSAGE(STATUS "    Unify: ${BUILD_UNIFY}")
+MESSAGE(STATUS "    URE: ${BUILD_URE}")
+MESSAGE(STATUS "    AtomSpace-Storage: ${BUILD_ATOMSPACE_STORAGE}")
+MESSAGE(STATUS "    AtomSpace-Rocks: ${BUILD_ATOMSPACE_ROCKS}")
+MESSAGE(STATUS "    AtomSpace-Pgres: ${BUILD_ATOMSPACE_PGRES}")
+MESSAGE(STATUS "    CogServer: ${BUILD_COGSERVER}")
+MESSAGE(STATUS "    AttentionBank: ${BUILD_ATTENTION}")
+MESSAGE(STATUS "    SpaceTime: ${BUILD_SPACETIME}")
+MESSAGE(STATUS "    PLN: ${BUILD_PLN}")
+MESSAGE(STATUS "    LG-Atomese: ${BUILD_LG_ATOMESE}")
+MESSAGE(STATUS "    Learn: ${BUILD_LEARN}")
+MESSAGE(STATUS "    OpenCog: ${BUILD_OPENCOG}")
+MESSAGE(STATUS "    Sensory: ${BUILD_SENSORY}")
+MESSAGE(STATUS "    Evidence: ${BUILD_EVIDENCE}")
+MESSAGE(STATUS "")
+MESSAGE(STATUS "To build, run: make")
+MESSAGE(STATUS "To install, run: make install")
+MESSAGE(STATUS "") 

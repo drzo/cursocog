@@ -21,5 +21,7 @@ configure the build files and shell scripts in the root folder to build and inst
 9. docker (where required)
 10. additional components listed in repos.txt
 clone and install the clay ui system for c++ and implement
-
 make everything beautiful and amazing
+feel free to update this file as you discover necessary changes
+
+create and maintain a .cursorrules file with any info you think is useful
