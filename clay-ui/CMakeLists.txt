@@ -51,7 +51,21 @@ target_link_libraries(clay-ui-renderer INTERFACE
     GLEW::GLEW
 )
 
-# Add example executable
+# Add AtomSpace integration library
+add_library(clay-ui-atomspace
+    src/opencog_atomspace_bridge.cpp
+    src/opencog_clay_bindings.cpp
+    src/atom_visualizer.cpp
+)
+target_include_directories(clay-ui-atomspace PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_link_libraries(clay-ui-atomspace
+    clay-ui
+    clay-ui-renderer
+)
+
+# Add example executables
 add_executable(clay-ui-example 
     examples/simple_window.c
 )
@@ -60,8 +74,17 @@ target_link_libraries(clay-ui-example
     clay-ui-renderer
 )
 
+add_executable(atomspace-viewer
+    examples/atomspace_viewer.cpp
+)
+target_link_libraries(atomspace-viewer
+    clay-ui
+    clay-ui-renderer
+    clay-ui-atomspace
+)
+
 # Installation
-install(TARGETS clay-ui clay-ui-renderer
+install(TARGETS clay-ui clay-ui-renderer clay-ui-atomspace
     EXPORT clay-ui-targets
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
@@ -69,6 +92,11 @@ install(TARGETS clay-ui clay-ui-renderer
 )
 
 install(DIRECTORY src/ 
+    DESTINATION include/clay
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(DIRECTORY include/
     DESTINATION include/clay
     FILES_MATCHING PATTERN "*.h"
 )

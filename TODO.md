@@ -51,21 +51,32 @@
 
 ## Next Steps
 1. Test the build system on various platforms
-   - [ ] Test on Ubuntu Linux
-   - [ ] Test on Windows 10/11
-   - [ ] Test on macOS
+   - [ ] Test on Ubuntu Linux 20.04 and 22.04
+   - [ ] Test on Windows 10/11 with both MSVC and MinGW toolchains
+   - [ ] Test on macOS with both Intel and Apple Silicon
+   - [ ] Create automated test scripts for each platform
+   - [ ] Document platform-specific issues and solutions
 2. Complete Clay UI integration
-   - [ ] Connect with live AtomSpace instances
-   - [ ] Add advanced interaction features
-   - [ ] Optimize rendering performance
+   - [ ] Connect with live AtomSpace instances via StorageNode API
+   - [ ] Add advanced interaction features (node/edge editing, filtering, search)
+   - [ ] Implement real-time visualization of AtomSpace changes
+   - [ ] Add custom visualization modes (hierarchical, radial, force-directed)
+   - [ ] Optimize rendering performance for large AtomSpace graphs
+   - [ ] Create user documentation for Clay UI
 3. Enhance build system
-   - [ ] Add incremental build support
-   - [ ] Optimize parallel builds
+   - [ ] Add incremental build support to speed up development
+   - [ ] Optimize parallel builds with dependency tracking
    - [ ] Add component-specific configuration options
+   - [ ] Create pre-configured build profiles for different use cases
+   - [ ] Implement automated dependency resolution
+   - [ ] Add support for cross-compilation
 4. Implement additional tools
-   - [ ] Create visual build system dashboard
-   - [ ] Add dependency graph visualization
-   - [ ] Create component health monitoring
+   - [ ] Create visual build system dashboard with build status
+   - [ ] Add dependency graph visualization for components
+   - [ ] Create component health monitoring with metrics
+   - [ ] Implement integration test framework
+   - [ ] Add continuous profiling and performance tracking
+   - [ ] Create development environment setup wizard
 
 ## Recent Updates
 - Added advanced AtomSpace visualization with force-directed graph layout
