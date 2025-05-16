@@ -1,0 +1,34 @@
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Build directories
+build/
+bin/
+lib/
+
+# IDE files
+.vs/
+.vscode/
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# Downloaded dependency files
+coginit/deps/*.zip
+coginit/deps/*.tar.gz
+coginit/deps/*.7z
+
+# Temporary files
+coginit/downloads_logs/
+downloads_logs/
+.DS_Store
+Thumbs.db 

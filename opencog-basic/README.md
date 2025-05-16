@@ -21,23 +21,23 @@ This is a standalone repository containing only the essential core components of
 
 ### Linux/macOS Build
 
-`ash
+```bash
 # Install dependencies
 ./install-dependencies.sh
 
 # Build
 ./build.sh
-`
+```
 
 ### Windows Build
 
-`powershell
+```powershell
 # Install dependencies
 ./install-dependencies.ps1
 
 # Build
 ./build.ps1
-`
+```
 
 ## Usage
 
@@ -45,9 +45,9 @@ After building, you can use the components individually or together as a cohesiv
 
 Basic example to start a CogServer:
 
-`ash
+```bash
 ./opencog-basic/cogserver/build/opencog/cogserver/server/cogserver
-`
+```
 
 ## Advanced Components
 
@@ -58,3 +58,39 @@ For advanced functionality, you may want to add additional components:
 
 These can be enabled by uncommenting the respective entries in repos-basic.txt
 and running the clone script again.
+
+## Dependency Management with CogInit
+
+This repository includes CogInit, a dependency management system for OpenCog. CogInit simplifies the setup process by providing:
+
+1. Local copies of dependency source files
+2. Automated installation scripts
+3. Verification tools
+
+### Using CogInit
+
+To build with automatic dependency management:
+
+```bash
+# On Linux
+./build-with-coginit.sh
+
+# On Windows
+.\build-with-coginit.ps1
+```
+
+These scripts will verify dependencies are installed before building and offer to install missing ones.
+
+### Manual Dependency Management
+
+You can also manage dependencies directly:
+
+```bash
+# Install dependencies on Linux
+./coginit/scripts/install-linux.sh
+
+# Install dependencies on Windows
+.\coginit\scripts\install-windows.ps1
+```
+
+For more information, see the README in the [coginit](./coginit) directory.
