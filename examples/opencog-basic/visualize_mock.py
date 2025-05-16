@@ -141,14 +141,25 @@ def visualize_atomspace(atomspace, title="Clay UI - AtomSpace Visualization"):
     # Create a layout for the graph - spring layout works well
     pos = nx.spring_layout(G, k=0.15, iterations=50)
     
-    # Get node colors from the graph attributes
-    node_colors = [G.nodes[n]['color'] for n in G.nodes()]
+    # Get node colors from the graph attributes, with a default
+    node_colors = []
+    for n in G.nodes():
+        try:
+            node_colors.append(G.nodes[n]['color'])
+        except KeyError:
+            node_colors.append('#aaaaaa')  # Default color if missing
     
     # Draw nodes
     nx.draw_networkx_nodes(G, pos, node_size=700, node_color=node_colors, alpha=0.9, edgecolors='white')
     
-    # Draw edges
-    edge_colors = [G.edges[e]['color'] for e in G.edges()]
+    # Draw edges with default color if missing
+    edge_colors = []
+    for e in G.edges():
+        try:
+            edge_colors.append(G.edges[e]['color'])
+        except KeyError:
+            edge_colors.append('#aaaaaa')  # Default color if missing
+    
     nx.draw_networkx_edges(G, pos, width=2, edge_color=edge_colors, alpha=0.7)
     
     # Draw node labels
@@ -255,11 +266,19 @@ def add_node_details(fig, ax, node_name, node_data, position):
     fig.text(fig_pos[0] + 0.06, fig_pos[1] + 0.08, node_name, 
              fontsize=12, color='white', fontweight='bold', zorder=6)
     
+    # Ensure the node_data has all required keys
+    if 'type' not in node_data:
+        node_data['type'] = 'Unknown'
+    if 'truth_value' not in node_data:
+        node_data['truth_value'] = [0.0, 0.0]
+    if 'position' not in node_data:
+        node_data['position'] = [0.0, 0.0, 0.0]
+    
     # Add details
     details = [
-        f"Type: {node_data['type']}",
-        f"TruthValue: {node_data['truth_value'][0]:.2f}, {node_data['truth_value'][1]:.2f}",
-        f"Position: {node_data['position'][0]:.2f}, {node_data['position'][1]:.2f}, {node_data['position'][2]:.2f}",
+        f"Type: {node_data.get('type', 'Unknown')}",
+        f"TruthValue: {node_data.get('truth_value', [0.0, 0.0])[0]:.2f}, {node_data.get('truth_value', [0.0, 0.0])[1]:.2f}",
+        f"Position: {node_data.get('position', [0.0, 0.0, 0.0])[0]:.2f}, {node_data.get('position', [0.0, 0.0, 0.0])[1]:.2f}, {node_data.get('position', [0.0, 0.0, 0.0])[2]:.2f}",
         f"Incoming Links: 3",
         f"Outgoing Links: 2"
     ]
