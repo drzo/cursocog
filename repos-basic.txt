@@ -1,0 +1,14 @@
+# OpenCog Basic Components Repositories
+# Format: repository_url [branch]
+
+# Core components
+https://github.com/opencog/cogutil master
+https://github.com/opencog/atomspace master
+https://github.com/opencog/atomspace-storage master
+https://github.com/opencog/atomspace-rocks master
+https://github.com/opencog/cogserver master
+
+# Uncomment as needed for advanced functionality
+# https://github.com/opencog/atomspace-pgres master
+# https://github.com/opencog/unify master
+# https://github.com/opencog/ure master 

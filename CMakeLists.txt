@@ -10,6 +10,15 @@
 #
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
+# Set C and C++ compilers before project() command
+SET(CMAKE_C_COMPILER gcc)
+# Set C++ compiler before project() command
+SET(CMAKE_CXX_COMPILER g++)
+
+# Enable C++ language support
+ENABLE_LANGUAGE(CXX)
+
+# Initialize project after setting compiler
 PROJECT(opencog)
 
 # ----------------------------------------------------------

@@ -1,0 +1,33 @@
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Build directories
+build/
+bin/
+lib/
+
+# IDE files
+.vs/
+.vscode/
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# Downloaded files
+deps/*.zip
+deps/*.tar.gz
+deps/*.7z
+
+# Temporary files
+downloads_logs/
+.DS_Store
+Thumbs.db
