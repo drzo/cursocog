@@ -63,7 +63,7 @@
    - [x] Added dashboard launcher scripts
    - [x] Created integration scripts
    - [x] Created test scripts to validate the integration
-   - [ ] Complete any remaining UI views (AtomSpace, Examples, Settings)
+   - [x] Complete any remaining UI views (AtomSpace, Examples, Settings)
 
 2. Create AtomSpace Examples for Beginners
    - [x] Created sample AtomSpace data files
