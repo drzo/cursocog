@@ -1,0 +1,14 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/clay-ui-targets.cmake")
+
+# Find dependencies
+include(CMakeFindDependencyMacro)
+find_dependency(OpenGL)
+find_dependency(GLEW)
+
+if(UNIX AND NOT APPLE)
+    find_dependency(X11)
+endif()
+
+check_required_components(clay-ui) 
