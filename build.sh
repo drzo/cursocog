@@ -35,6 +35,23 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo -e "${BLUE}OpenCog Build System${NC}"
 echo -e "${BLUE}===================${NC}"
 
+# Build profile selection
+BUILD_PROFILE=""
+if [ ! -z "$1" ] && [ "$1" == "--profile" ]; then
+    if [ -z "$2" ]; then
+        error_exit "Please specify a build profile."
+    fi
+    BUILD_PROFILE="$2"
+    echo -e "${YELLOW}Using build profile: $BUILD_PROFILE${NC}"
+    # Load profile if it exists
+    if [ -f "profiles/${BUILD_PROFILE}.sh" ]; then
+        source "profiles/${BUILD_PROFILE}.sh"
+        echo -e "${GREEN}Loaded build profile: $BUILD_PROFILE${NC}"
+    else
+        error_exit "Build profile not found: $BUILD_PROFILE"
+    fi
+fi
+
 # Check for dependencies
 section_header "Checking dependencies"
 echo "Verifying that all required dependencies are installed..."
@@ -79,10 +96,26 @@ function build_component {
     # Create build directory
     mkdir -p $component_dir/build
     
+    # Get component-specific CMake arguments
+    local cmake_args=""
+    if [ -f "$SCRIPT_DIR/scripts/component-config.sh" ]; then
+        cmake_args=$("$SCRIPT_DIR/scripts/component-config.sh" args "$component_name")
+        if [ ! -z "$cmake_args" ]; then
+            echo "Using component-specific configuration: $cmake_args"
+        fi
+    fi
+    
+    # Apply profile-specific settings if a profile is active
+    if [ ! -z "$BUILD_PROFILE" ] && [ ! -z "${COMPONENT_CONFIG[$component_name]}" ]; then
+        local profile_args="${COMPONENT_CONFIG[$component_name]}"
+        echo "Applying profile settings: $profile_args"
+        cmake_args="$cmake_args $profile_args"
+    fi
+    
     # Configure, build and install
     cd $component_dir/build
     echo "Configuring $component_name..."
-    cmake .. > $log_file 2>&1 || error_exit "Failed to configure $component_name. See $log_file for details."
+    cmake $cmake_args .. > $log_file 2>&1 || error_exit "Failed to configure $component_name. See $log_file for details."
     
     echo "Building $component_name..."
     make -j$(nproc) >> $log_file 2>&1 || error_exit "Failed to build $component_name. See $log_file for details."
@@ -176,32 +209,73 @@ function build_all {
 }
 
 # Parse command line arguments
-case "$1" in
-    --help|-h)
-        echo "Usage: $0 [OPTION]"
-        echo "Build OpenCog components."
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    echo "Usage: $0 [OPTION]"
+    echo "Build OpenCog components."
+    echo ""
+    echo "Options:"
+    echo "  --check-only                   Check prerequisites only without building"
+    echo "  --component COMPONENT          Build a specific component"
+    echo "  --profile PROFILE              Use a specific build profile"
+    echo "  --configure COMPONENT          Configure a component"
+    echo "  --help, -h                     Display this help and exit"
+    echo ""
+    echo "Build profiles:"
+    echo "  minimal       Minimal build with core components only"
+    echo "  standard      Standard build with common components"
+    echo "  development   Development build with all components and debug symbols"
+    echo "  performance   Performance-optimized build"
+    echo ""
+    exit 0
+elif [ "$1" == "--check-only" ]; then
+    check_prerequisites
+    exit 0
+elif [ "$1" == "--component" ]; then
+    if [ -z "$2" ]; then
+        error_exit "Please specify a component name."
+    fi
+    build_component "$2" "$2"
+    exit 0
+elif [ "$1" == "--configure" ]; then
+    if [ -z "$2" ]; then
+        error_exit "Please specify a component name."
+    fi
+    if [ -f "$SCRIPT_DIR/scripts/component-config.sh" ]; then
+        "$SCRIPT_DIR/scripts/component-config.sh" show "$2"
         echo ""
-        echo "Options:"
-        echo "  --check-only    Check prerequisites only without building"
-        echo "  --component     Build a specific component"
-        echo "  --help, -h      Display this help and exit"
-        echo ""
+        read -p "Do you want to configure this component? (y/N): " confirm
+        if [[ $confirm == [yY] ]]; then
+            echo "Enter configuration options (option=value), one per line. Empty line to finish."
+            while true; do
+                read -p "> " config_line
+                if [ -z "$config_line" ]; then
+                    break
+                fi
+                
+                option=${config_line%%=*}
+                value=${config_line#*=}
+                
+                "$SCRIPT_DIR/scripts/component-config.sh" set "$2" "$option" "$value"
+            done
+        fi
+    else
+        error_exit "Component configuration tool not found."
+    fi
+    exit 0
+elif [ "$1" == "--profile" ]; then
+    # This is handled earlier to support using profiles with other commands
+    if [ -z "$3" ]; then
+        build_all
         exit 0
-        ;;
-    --check-only)
-        check_prerequisites
-        exit 0
-        ;;
-    --component)
-        if [ -z "$2" ]; then
+    elif [ "$3" == "--component" ]; then
+        if [ -z "$4" ]; then
             error_exit "Please specify a component name."
         fi
-        build_component "$2" "$2"
+        build_component "$4" "$4"
         exit 0
-        ;;
-    *)
-        build_all
-        ;;
-esac
+    fi
+else
+    build_all
+fi
 
 exit 0 

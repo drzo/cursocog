@@ -35,6 +35,22 @@ $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 Write-ColorOutput $Blue "OpenCog Build System"
 Write-ColorOutput $Blue "==================="
 
+# Build profile selection
+$BUILD_PROFILE = ""
+if ($Profile) {
+    $BUILD_PROFILE = $Profile
+    Write-ColorOutput $Yellow "Using build profile: $BUILD_PROFILE"
+    # Load profile if it exists
+    $profilePath = Join-Path -Path $SCRIPT_DIR -ChildPath "profiles\$BUILD_PROFILE.ps1"
+    if (Test-Path $profilePath) {
+        . $profilePath
+        Write-ColorOutput $Green "Loaded build profile: $BUILD_PROFILE"
+    }
+    else {
+        Error-Exit "Build profile not found: $BUILD_PROFILE"
+    }
+}
+
 # Check for dependencies
 Section-Header "Checking dependencies"
 Write-Output "Verifying that all required dependencies are installed..."
@@ -89,11 +105,32 @@ function Build-Component($componentName, $componentDir) {
         New-Item -ItemType Directory -Path "$componentDir\build" | Out-Null
     }
     
+    # Get component-specific CMake arguments
+    $cmakeArgs = ""
+    $configScript = Join-Path -Path $SCRIPT_DIR -ChildPath "scripts\component-config.ps1"
+    if (Test-Path $configScript) {
+        $cmakeArgs = & $configScript args $componentName
+        if ($cmakeArgs) {
+            Write-Output "Using component-specific configuration: $cmakeArgs"
+        }
+    }
+    
+    # Apply profile-specific settings if a profile is active
+    if ($BUILD_PROFILE -and $COMPONENT_CONFIG -and $COMPONENT_CONFIG[$componentName]) {
+        $profileArgs = $COMPONENT_CONFIG[$componentName]
+        Write-Output "Applying profile settings: $profileArgs"
+        $cmakeArgs = "$cmakeArgs $profileArgs"
+    }
+    
     # Configure, build and install
     Push-Location "$componentDir\build"
     
     Write-Output "Configuring $componentName..."
-    cmake .. | Out-File -FilePath $logFile
+    if ($cmakeArgs) {
+        Invoke-Expression "cmake $cmakeArgs .." | Out-File -FilePath $logFile
+    } else {
+        cmake .. | Out-File -FilePath $logFile
+    }
     if (!$?) {
         Pop-Location
         Error-Exit "Failed to configure $componentName. See $logFile for details."
@@ -153,6 +190,32 @@ function Check-Prerequisites {
     Write-ColorOutput $Green "Prerequisites check completed."
 }
 
+# Function to Configure Component
+function Configure-Component($componentName) {
+    $configScript = Join-Path -Path $SCRIPT_DIR -ChildPath "scripts\component-config.ps1"
+    if (Test-Path $configScript) {
+        & $configScript show $componentName
+        Write-Output ""
+        $confirm = Read-Host "Do you want to configure this component? (y/N)"
+        if ($confirm -match "^[yY]$") {
+            Write-Output "Enter configuration options (option=value), one per line. Empty line to finish."
+            while ($true) {
+                $configLine = Read-Host "> "
+                if ([string]::IsNullOrEmpty($configLine)) {
+                    break
+                }
+                
+                $option = $configLine.Split('=')[0]
+                $value = $configLine.Substring($configLine.IndexOf('=') + 1)
+                
+                & $configScript set $componentName $option $value
+            }
+        }
+    } else {
+        Error-Exit "Component configuration tool not found."
+    }
+}
+
 # Main build process
 function Build-All {
     Write-Output "OpenCog Build System"
@@ -187,23 +250,38 @@ function Build-All {
 param(
     [switch]$CheckOnly,
     [string]$Component,
+    [string]$Profile,
+    [string]$Configure,
     [switch]$Help
 )
 
 if ($Help) {
-    Write-Output "Usage: .\build.ps1 [-CheckOnly] [-Component <name>] [-Help]"
+    Write-Output "Usage: .\build.ps1 [-CheckOnly] [-Component <name>] [-Profile <name>] [-Configure <name>] [-Help]"
     Write-Output "Build OpenCog components."
     Write-Output ""
     Write-Output "Options:"
     Write-Output "  -CheckOnly      Check prerequisites only without building"
     Write-Output "  -Component      Build a specific component"
+    Write-Output "  -Profile        Use a specific build profile"
+    Write-Output "  -Configure      Configure a specific component"
     Write-Output "  -Help           Display this help and exit"
+    Write-Output ""
+    Write-Output "Build profiles:"
+    Write-Output "  minimal       Minimal build with core components only"
+    Write-Output "  standard      Standard build with common components"
+    Write-Output "  development   Development build with all components and debug symbols"
+    Write-Output "  performance   Performance-optimized build"
     Write-Output ""
     exit 0
 }
 
 if ($CheckOnly) {
     Check-Prerequisites
+    exit 0
+}
+
+if ($Configure) {
+    Configure-Component $Configure
     exit 0
 }
 
