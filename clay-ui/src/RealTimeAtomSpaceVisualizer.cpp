@@ -25,6 +25,7 @@
 #include <sstream>
 #include <algorithm>
 #include <opencog/RealTimeAtomSpaceVisualizer.h>
+#include <opencog/OptimizedGraphRenderer.h>
 #include <opencog/atomspace/AtomSpace.h>
 #include <opencog/atoms/base/Handle.h>
 #include <opencog/atoms/base/Node.h>
@@ -46,7 +47,10 @@ RealTimeAtomSpaceVisualizer::RealTimeAtomSpaceVisualizer()
       _translateY(0.0f),
       _includeSubtypes(true),
       _minConfidence(0.0f),
-      _minStrength(0.0f)
+      _minStrength(0.0f),
+      _needsRedraw(true),
+      _viewportWidth(1280),
+      _viewportHeight(720)
 {
     // Default node size function based on outgoing set size
     _nodeSizeFunc = [](const Handle& h) -> float {
@@ -165,7 +169,13 @@ void RealTimeAtomSpaceVisualizer::setEdgeThicknessFunction(
 void RealTimeAtomSpaceVisualizer::setMaxVisibleNodes(size_t maxNodes)
 {
     _maxVisibleNodes = maxNodes;
-    updateVisualization();
+    if (_renderer) {
+        // Update the rendering configuration
+        OptimizedGraphRenderer::RenderConfig config = _renderer->getRenderConfig();
+        // Apply the new max visible nodes (might need to adjust this)
+        _renderer->setRenderConfig(config);
+    }
+    _needsRedraw = true;
 }
 
 size_t RealTimeAtomSpaceVisualizer::getMaxVisibleNodes() const
@@ -242,25 +252,26 @@ void RealTimeAtomSpaceVisualizer::clearHighlighting()
 // Camera controls
 void RealTimeAtomSpaceVisualizer::zoomToFit()
 {
-    // Implementation would depend on the rendering system used
-    // Basic idea: calculate bounds of visible atoms and adjust scale/translation
-    _scale = 1.0f;
-    _translateX = 0.0f;
-    _translateY = 0.0f;
-    
-    updateVisualization();
+    if (_renderer) {
+        _renderer->resetView();
+    }
+    _needsRedraw = true;
 }
 
 void RealTimeAtomSpaceVisualizer::zoomIn()
 {
-    _scale *= 1.2f;
-    updateVisualization();
+    if (_renderer) {
+        _renderer->zoomIn();
+    }
+    _needsRedraw = true;
 }
 
 void RealTimeAtomSpaceVisualizer::zoomOut()
 {
-    _scale *= 0.8f;
-    updateVisualization();
+    if (_renderer) {
+        _renderer->zoomOut();
+    }
+    _needsRedraw = true;
 }
 
 void RealTimeAtomSpaceVisualizer::panTo(const Handle& h)
@@ -355,33 +366,31 @@ size_t RealTimeAtomSpaceVisualizer::getPendingEventCount() const
 // Statistics
 size_t RealTimeAtomSpaceVisualizer::getVisibleNodeCount() const
 {
-    // Implementation would depend on tracking visible atoms
-    // This is a placeholder
+    if (_renderer) {
+        return _renderer->getVisibleAtomCount();
+    }
     return 0;
 }
 
 size_t RealTimeAtomSpaceVisualizer::getVisibleLinkCount() const
 {
-    // Implementation would depend on tracking visible atoms
-    // This is a placeholder
+    if (_renderer) {
+        return _renderer->getVisibleEdgeCount();
+    }
     return 0;
 }
 
 size_t RealTimeAtomSpaceVisualizer::getTotalNodeCount() const
 {
-    if (!isConnected()) return 0;
-    
-    // Actual implementation would use AtomSpace API
-    // For now, just a placeholder
+    if (_renderer) {
+        return _renderer->getTotalAtomCount();
+    }
     return 0;
 }
 
 size_t RealTimeAtomSpaceVisualizer::getTotalLinkCount() const
 {
-    if (!isConnected()) return 0;
-    
-    // Actual implementation would use AtomSpace API
-    // For now, just a placeholder
+    // This would need to be implemented - for now just a placeholder
     return 0;
 }
 
@@ -412,29 +421,56 @@ void RealTimeAtomSpaceVisualizer::stopUpdateThread()
 
 void RealTimeAtomSpaceVisualizer::updateVisualization()
 {
-    // This would implement the actual rendering of the graph
-    // The implementation depends on the rendering system used
+    if (!_renderer) {
+        // Create the optimized renderer if it doesn't exist
+        _renderer = std::make_unique<OptimizedGraphRenderer>();
+        
+        // Configure the renderer
+        OptimizedGraphRenderer::RenderConfig config;
+        config.showLabels = true;
+        config.showTypes = true;
+        config.edgeThickness = 1.0f;
+        config.nodeSize = 10.0f;
+        _renderer->setRenderConfig(config);
+        
+        // Set initial atoms if connected to AtomSpace
+        if (isConnected()) {
+            HandleSeq atoms;
+            // Get all atoms from the AtomSpace
+            // Actual implementation would depend on AtomSpace API
+            // _atomspace->get_handles_by_type(atoms, ATOM, true);
+            _renderer->setAtoms(atoms);
+        }
+        
+        // Initialize the renderer with default viewport size
+        _renderer->initialize(_viewportWidth, _viewportHeight);
+    }
     
+    // Update the layout if needed
     switch (_layoutMode) {
         case LayoutMode::FORCE_DIRECTED:
-            applyForceDirectedLayout();
+            _renderer->setDetailLevel(OptimizedGraphRenderer::DetailLevel::FULL);
             break;
             
         case LayoutMode::HIERARCHICAL:
-            applyHierarchicalLayout();
+            _renderer->setDetailLevel(OptimizedGraphRenderer::DetailLevel::MEDIUM);
             break;
             
         case LayoutMode::RADIAL:
-            applyRadialLayout();
+            _renderer->setDetailLevel(OptimizedGraphRenderer::DetailLevel::MEDIUM);
             break;
             
         case LayoutMode::GRID:
-            applyGridLayout();
+            _renderer->setDetailLevel(OptimizedGraphRenderer::DetailLevel::LOW);
             break;
     }
     
-    // After updating the layout, render would be called
-    // render();
+    // Check if we need to render
+    if (_needsRedraw) {
+        // Render the graph
+        _renderer->render(_viewportWidth, _viewportHeight);
+        _needsRedraw = false;
+    }
 }
 
 bool RealTimeAtomSpaceVisualizer::isAtomVisible(const Handle& h) const
@@ -586,6 +622,24 @@ void RealTimeAtomSpaceVisualizer::applyGridLayout()
     // This would arrange atoms in a grid pattern
     
     // Placeholder implementation
+}
+
+// Add these new functions to support viewport resizing and explicit rendering
+void RealTimeAtomSpaceVisualizer::setViewportSize(int width, int height)
+{
+    _viewportWidth = width;
+    _viewportHeight = height;
+    if (_renderer) {
+        _renderer->initialize(width, height);
+    }
+    _needsRedraw = true;
+}
+
+void RealTimeAtomSpaceVisualizer::render()
+{
+    if (_renderer) {
+        _renderer->render(_viewportWidth, _viewportHeight);
+    }
 }
 
 } // namespace opencog

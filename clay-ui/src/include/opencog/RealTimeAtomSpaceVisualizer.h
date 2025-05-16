@@ -30,6 +30,9 @@
 #include <unordered_map>
 #include <functional>
 
+// Forward declarations
+class OptimizedGraphRenderer;
+
 namespace opencog {
 
 class AtomSpace;
@@ -127,6 +130,10 @@ public:
     size_t getTotalNodeCount() const;
     size_t getTotalLinkCount() const;
     
+    // Viewport and rendering
+    void setViewportSize(int width, int height);
+    void render();
+    
 private:
     // AtomSpace reference
     AtomSpacePtr _atomspace;
@@ -174,6 +181,12 @@ private:
     void applyHierarchicalLayout();
     void applyRadialLayout();
     void applyGridLayout();
+    
+    // Optimized rendering engine
+    std::unique_ptr<OptimizedGraphRenderer> _renderer;
+    bool _needsRedraw;
+    int _viewportWidth;
+    int _viewportHeight;
 };
 
 } // namespace opencog
