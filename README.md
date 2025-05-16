@@ -56,6 +56,46 @@ sudo apt-get install binutils-dev libiberty-dev
 - Boost libraries (through vcpkg)
 - Guile (optional)
 
+## Dependency Management
+
+## Dependency Verification
+
+Before building OpenCog, you can verify that all required dependencies are installed correctly using the dependency verification tool:
+
+### Linux/macOS
+```bash
+./scripts/verify-dependencies.sh
+```
+
+### Windows
+```powershell
+.\scripts\verify-dependencies.ps1
+```
+
+The tool will check for all required dependencies, verify their versions, and provide installation instructions for any missing or outdated components.
+
+## Dependency Installation
+
+If dependencies are missing, you can install them using the provided scripts:
+
+### Linux
+```bash
+sudo ./install-dependencies.sh
+```
+
+### Windows
+```powershell
+# Run as Administrator
+.\install-dependencies.ps1
+```
+
+### macOS
+```bash
+# Install using Homebrew
+brew install cmake boost cxxtest guile python3 rocksdb postgresql
+pip3 install cython pytest numpy scipy
+```
+
 ## Building OpenCog
 
 ### Using the Automated Build Scripts

@@ -77,7 +77,7 @@
    - [x] Added verification tools in test scripts
    - [x] Added missing library checks to install-dependencies scripts
    - [x] Created build-with-coginit.sh/ps1 scripts
-   - [ ] Create a standalone dependency verification tool
+   - [x] Create a standalone dependency verification tool
 
 4. Create Installation Packages
    - [x] Created Linux package creation script (DEB/RPM)

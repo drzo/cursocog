@@ -6,14 +6,11 @@
 
 set -e  # Exit on error
 
-echo "OpenCog Build System"
-echo "===================="
-echo
-
 # Define colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Create build log directory
@@ -25,6 +22,40 @@ function error_exit {
     echo -e "${RED}$1${NC}" 1>&2
     exit 1
 }
+
+# Function to display section header
+function section_header {
+    echo -e "\n${BLUE}=== $1 ===${NC}"
+}
+
+# Get current directory
+CURRENT_DIR=$(pwd)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo -e "${BLUE}OpenCog Build System${NC}"
+echo -e "${BLUE}===================${NC}"
+
+# Check for dependencies
+section_header "Checking dependencies"
+echo "Verifying that all required dependencies are installed..."
+
+# Run the dependency verification tool
+if [ -f "$SCRIPT_DIR/scripts/verify-dependencies.sh" ]; then
+    "$SCRIPT_DIR/scripts/verify-dependencies.sh"
+    if [ $? -ne 0 ]; then
+        read -p "Continue build despite dependency issues? (y/N): " confirm
+        if [[ $confirm != [yY] ]]; then
+            error_exit "Build aborted due to dependency issues."
+        fi
+        echo -e "${YELLOW}Continuing despite dependency issues. The build may fail.${NC}"
+    else
+        echo -e "${GREEN}All dependencies verified successfully.${NC}"
+    fi
+else
+    echo -e "${YELLOW}Dependency verification tool not found. Skipping dependency check.${NC}"
+    echo -e "${YELLOW}You may encounter build failures if dependencies are missing.${NC}"
+    echo "Run ./install-dependencies.sh to install required dependencies."
+fi
 
 # Function to check if a command exists
 function command_exists {

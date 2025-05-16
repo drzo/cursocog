@@ -5,6 +5,7 @@
 $Green = [System.ConsoleColor]::Green
 $Red = [System.ConsoleColor]::Red
 $Yellow = [System.ConsoleColor]::Yellow
+$Blue = [System.ConsoleColor]::Blue
 
 function Write-ColorOutput($ForegroundColor) {
     $fc = $host.UI.RawUI.ForegroundColor
@@ -21,6 +22,40 @@ function Write-ColorOutput($ForegroundColor) {
 function Error-Exit($message) {
     Write-ColorOutput $Red $message
     exit 1
+}
+
+function Section-Header($message) {
+    Write-ColorOutput $Blue "`n=== $message ==="
+}
+
+# Get current directory and script path
+$CURRENT_DIR = Get-Location
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+Write-ColorOutput $Blue "OpenCog Build System"
+Write-ColorOutput $Blue "==================="
+
+# Check for dependencies
+Section-Header "Checking dependencies"
+Write-Output "Verifying that all required dependencies are installed..."
+
+# Run the dependency verification tool
+$verifyScript = Join-Path -Path $SCRIPT_DIR -ChildPath "scripts\verify-dependencies.ps1"
+if (Test-Path $verifyScript) {
+    & $verifyScript
+    if ($LASTEXITCODE -ne 0) {
+        $confirm = Read-Host "Continue build despite dependency issues? (y/N)"
+        if ($confirm -notmatch "^[yY]$") {
+            Error-Exit "Build aborted due to dependency issues."
+        }
+        Write-ColorOutput $Yellow "Continuing despite dependency issues. The build may fail."
+    } else {
+        Write-ColorOutput $Green "All dependencies verified successfully."
+    }
+} else {
+    Write-ColorOutput $Yellow "Dependency verification tool not found. Skipping dependency check."
+    Write-ColorOutput $Yellow "You may encounter build failures if dependencies are missing."
+    Write-Output "Run .\install-dependencies.ps1 to install required dependencies."
 }
 
 # Create build log directory
