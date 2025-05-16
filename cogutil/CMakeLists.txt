@@ -18,6 +18,11 @@ include(cmake/Summary.cmake)
 # add_compile_definitions shows up in CMake version 3.12
 CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
+# Set policies
+if(POLICY CMP0115)
+    cmake_policy(SET CMP0115 NEW) # Source file extensions must be explicit
+endif()
+
 PROJECT(cogutil)
 
 # Uncomment to be in Release mode [default].
@@ -63,19 +68,24 @@ SET(SEMANTIC_VERSION ${CMAKE_MATCH_1})
 include(cmake/OpenCogGccOptions.cmake)
 
 # ------------------------------------------------------
-IF (WIN32) # Windows host but not cygwin
-	MESSAGE(FATAL_ERROR "You must use Cygwin if compiling under Windows.")
-
-	# Previous definitions used for win32 (non cygwin) compilation.
-	# For reference only
-
-	# ADD_DEFINITIONS(-DWIN32_NOT_UNIX)
-	# FIND_PACKAGE(PThreads REQUIRED)
-	# FIND_PACKAGE(STLPort REQUIRED)
-	# INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/win32" ${PTHREADS_INCLUDE_DIR} ${STLPORT_INCLUDE_DIR})
-	# LINK_LIBRARIES(${PTHREADS_LIBRARY} ${STLPORT_LIBRARIES})
-	# ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
-ENDIF (WIN32)
+IF (WIN32 AND NOT CYGWIN) # Windows host but not cygwin
+	MESSAGE(STATUS "Building on Windows with MSVC.")
+	
+	# Add Windows-specific settings
+	ADD_DEFINITIONS(-DWIN32_NOT_UNIX)
+	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
+	
+	# Find threading support
+	FIND_PACKAGE(Threads REQUIRED)
+	INCLUDE_DIRECTORIES(${CMAKE_THREAD_LIBS_INIT})
+	LINK_LIBRARIES(${CMAKE_THREAD_LIBS_INIT})
+	
+	# Windows-specific flags
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+	
+	# Define NOMINMAX to disable Windows min/max macros
+	ADD_DEFINITIONS(-DNOMINMAX)
+ENDIF (WIN32 AND NOT CYGWIN)
 
 # Do the cygwin build
 IF (CYGWIN)
@@ -94,21 +104,25 @@ SET(MIN_BOOST 1.60)
 
 # Required boost packages
 # 1.60 is minimum for required filesystem support
-FIND_PACKAGE(Boost ${MIN_BOOST} COMPONENTS filesystem program_options system thread REQUIRED)
+if(NOT CMAKE_DISABLE_FIND_PACKAGE_Boost)
+	FIND_PACKAGE(Boost ${MIN_BOOST} COMPONENTS filesystem program_options system thread REQUIRED)
 
-IF (Boost_FOUND)
-	SET(Boost_FOUND_SAVE 1)
-ELSE(Boost_FOUND)
-	MESSAGE(FATAL_ERROR "Boost ${MIN_BOOST} or newer (package libboost-all-dev if using Ubuntu) is needed to build!")
-ENDIF (Boost_FOUND)
+	IF (Boost_FOUND)
+		SET(Boost_FOUND_SAVE 1)
+	ELSE(Boost_FOUND)
+		MESSAGE(FATAL_ERROR "Boost ${MIN_BOOST} or newer (package libboost-all-dev if using Ubuntu) is needed to build!")
+	ENDIF (Boost_FOUND)
 
-# Optional boost packages; can build without these. (?? what needs this ??)
-FIND_PACKAGE(Boost ${MIN_BOOST} COMPONENTS math_c99 QUIET)
+	# Optional boost packages; can build without these. (?? what needs this ??)
+	FIND_PACKAGE(Boost ${MIN_BOOST} COMPONENTS math_c99 QUIET)
 
-# Arghhh. Except cmake is treating above as required, not optional. #$%**&
-IF (Boost_FOUND_SAVE)
-	SET(Boost_FOUND 1)
-ENDIF (Boost_FOUND_SAVE)
+	# Arghhh. Except cmake is treating above as required, not optional. #$%**&
+	IF (Boost_FOUND_SAVE)
+		SET(Boost_FOUND 1)
+	ENDIF (Boost_FOUND_SAVE)
+else()
+	MESSAGE(STATUS "Boost package detection disabled. Limited functionality will be available.")
+endif()
 
 # -------------------------------------------------------------
 FIND_PACKAGE(Cxxtest)
@@ -165,16 +179,18 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR} ${Boost_INCLUDE_DIRS})
 # Library configuration
 # Small hack to handle unixes that use "/usr/lib64" instead of
 # "/usr/lib" as the default lib path on 64 bit archs.
-IF (NOT DEFINED LIB_DIR_SUFFIX)
+IF (NOT DEFINED LIB_DIR_SUFFIX AND NOT WIN32)
 	EXECUTE_PROCESS(COMMAND ${CMAKE_CXX_COMPILER} -print-search-dirs OUTPUT_VARIABLE PRINT_SEARCH_DIRS_OUTPUT)
-	STRING(REGEX MATCH "\r?\nlibraries:.*\r?\n" COMPILER_LIB_SEARCH_DIRS ${PRINT_SEARCH_DIRS_OUTPUT})
-	IF (NOT ${COMPILER_LIB_SEARCH_DIRS} STREQUAL "")
-		STRING(REGEX MATCH "/lib64/:|/lib64:|/lib64\n" HAS_LIB64 ${COMPILER_LIB_SEARCH_DIRS})
-		IF (NOT ${HAS_LIB64} STREQUAL "")
-			SET(LIB_DIR_SUFFIX "64")
-		ENDIF (NOT ${HAS_LIB64} STREQUAL "")
-	ENDIF (NOT ${COMPILER_LIB_SEARCH_DIRS} STREQUAL "")
-ENDIF (NOT DEFINED LIB_DIR_SUFFIX)
+	IF (PRINT_SEARCH_DIRS_OUTPUT)
+		STRING(REGEX MATCH "\r?\nlibraries:.*\r?\n" COMPILER_LIB_SEARCH_DIRS "${PRINT_SEARCH_DIRS_OUTPUT}")
+		IF (NOT "${COMPILER_LIB_SEARCH_DIRS}" STREQUAL "")
+			STRING(REGEX MATCH "/lib64/:|/lib64:|/lib64\n" HAS_LIB64 "${COMPILER_LIB_SEARCH_DIRS}")
+			IF (NOT "${HAS_LIB64}" STREQUAL "")
+				SET(LIB_DIR_SUFFIX "64")
+			ENDIF (NOT "${HAS_LIB64}" STREQUAL "")
+		ENDIF (NOT "${COMPILER_LIB_SEARCH_DIRS}" STREQUAL "")
+	ENDIF (PRINT_SEARCH_DIRS_OUTPUT)
+ENDIF (NOT DEFINED LIB_DIR_SUFFIX AND NOT WIN32)
 
 # RPATH handling (see https://cmake.org/Wiki/CMake_RPATH_handling)
 # Note: RPATH only supported under Linux!

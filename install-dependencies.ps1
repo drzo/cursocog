@@ -70,7 +70,7 @@ if (-not (Get-Command "cmake" -ErrorAction SilentlyContinue)) {
 }
 
 # Install vcpkg
-$vcpkgPath = "$env:USERPROFILE\vcpkg"
+$vcpkgPath = "C:\vcpkg"
 if (-not (Test-Path $vcpkgPath)) {
     Write-ColorOutput $Yellow "vcpkg not found. Installing vcpkg..."
     git clone https://github.com/Microsoft/vcpkg.git $vcpkgPath
@@ -117,7 +117,7 @@ $dependencies = @(
 
 foreach ($dep in $dependencies) {
     Write-ColorOutput $Yellow "Installing $dep..."
-    & $vcpkgPath\vcpkg install $dep
+    & "$vcpkgPath\vcpkg" install $dep
     if ($LASTEXITCODE -ne 0) {
         Write-ColorOutput $Red "Failed to install $dep"
     }
@@ -125,6 +125,7 @@ foreach ($dep in $dependencies) {
 
 # Set VCPKG_ROOT environment variable
 [Environment]::SetEnvironmentVariable("VCPKG_ROOT", $vcpkgPath, [System.EnvironmentVariableTarget]::User)
+$env:VCPKG_ROOT = $vcpkgPath
 Write-ColorOutput $Green "VCPKG_ROOT environment variable set to: $vcpkgPath"
 
 # Install Python packages

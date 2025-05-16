@@ -1,3 +1,12 @@
+param(
+    [switch]$CheckOnly,
+    [string]$Component,
+    [string]$Profile,
+    [string]$Configure,
+    [switch]$Help,
+    [switch]$Limited
+)
+
 # OpenCog Build Script for Windows
 # This script builds all OpenCog components in the required order
 
@@ -36,7 +45,6 @@ Write-ColorOutput $Blue "OpenCog Build System"
 Write-ColorOutput $Blue "==================="
 
 # Build profile selection
-$BUILD_PROFILE = ""
 if ($Profile) {
     $BUILD_PROFILE = $Profile
     Write-ColorOutput $Yellow "Using build profile: $BUILD_PROFILE"
@@ -47,35 +55,58 @@ if ($Profile) {
         Write-ColorOutput $Green "Loaded build profile: $BUILD_PROFILE"
     }
     else {
-        Error-Exit "Build profile not found: $BUILD_PROFILE"
+        Error-Exit "Build profile not found: $profilePath"
     }
 }
 
-# Check for dependencies
-Section-Header "Checking dependencies"
-Write-Output "Verifying that all required dependencies are installed..."
-
-# Run the dependency verification tool
-$verifyScript = Join-Path -Path $SCRIPT_DIR -ChildPath "scripts\verify-dependencies.ps1"
-if (Test-Path $verifyScript) {
-    & $verifyScript
-    if ($LASTEXITCODE -ne 0) {
-        $confirm = Read-Host "Continue build despite dependency issues? (y/N)"
-        if ($confirm -notmatch "^[yY]$") {
-            Error-Exit "Build aborted due to dependency issues."
-        }
-        Write-ColorOutput $Yellow "Continuing despite dependency issues. The build may fail."
+# Check for VCPKG_ROOT
+$vcpkgRoot = $env:VCPKG_ROOT
+if (-not $vcpkgRoot) {
+    $vcpkgRoot = "C:\vcpkg"
+    if (Test-Path $vcpkgRoot) {
+        Write-ColorOutput $Yellow "VCPKG_ROOT not set, using default: $vcpkgRoot"
+        $env:VCPKG_ROOT = $vcpkgRoot
     } else {
-        Write-ColorOutput $Green "All dependencies verified successfully."
+        Write-ColorOutput $Yellow "vcpkg not found at default location. Please set VCPKG_ROOT environment variable."
+    }
+}
+
+# Check for vcpkg toolchain file
+$vcpkgToolchain = Join-Path -Path $vcpkgRoot -ChildPath "scripts\buildsystems\vcpkg.cmake"
+if (Test-Path $vcpkgToolchain) {
+    Write-ColorOutput $Green "Found vcpkg toolchain file: $vcpkgToolchain"
+} else {
+    Write-ColorOutput $Yellow "vcpkg toolchain file not found. CMake will not be able to find Boost packages."
+}
+
+# Check for dependencies if not in limited mode
+if (-not $Limited) {
+    Section-Header "Checking dependencies"
+    Write-Output "Verifying that all required dependencies are installed..."
+
+    # Run the dependency verification tool
+    $verifyScript = Join-Path -Path $SCRIPT_DIR -ChildPath "scripts\verify-dependencies.ps1"
+    if (Test-Path $verifyScript) {
+        & $verifyScript
+        if ($LASTEXITCODE -ne 0) {
+            $confirm = Read-Host "Continue build despite dependency issues? (y/N)"
+            if ($confirm -notmatch "^[yY]$") {
+                Error-Exit "Build aborted due to dependency issues."
+            }
+            Write-ColorOutput $Yellow "Continuing despite dependency issues. The build may fail."
+        } else {
+            Write-ColorOutput $Green "All dependencies verified successfully."
+        }
+    } else {
+        Write-ColorOutput $Yellow "Dependency verification tool not found. Skipping dependency check."
+        Write-Output "Run .\install-dependencies.ps1 to install required dependencies."
     }
 } else {
-    Write-ColorOutput $Yellow "Dependency verification tool not found. Skipping dependency check."
-    Write-ColorOutput $Yellow "You may encounter build failures if dependencies are missing."
-    Write-Output "Run .\install-dependencies.ps1 to install required dependencies."
+    Write-ColorOutput $Yellow "Running in limited mode. Dependency checks skipped."
 }
 
 # Create build log directory
-$LOGS_DIR = "build_logs"
+$LOGS_DIR = Join-Path -Path $SCRIPT_DIR -ChildPath "build_logs"
 if (!(Test-Path $LOGS_DIR)) {
     New-Item -ItemType Directory -Path $LOGS_DIR | Out-Null
 }
@@ -87,7 +118,7 @@ function Command-Exists($cmdname) {
 
 # Function to build a component
 function Build-Component($componentName, $componentDir) {
-    $logFile = "$LOGS_DIR\${componentName}_build.log"
+    $logFile = Join-Path -Path $LOGS_DIR -ChildPath "${componentName}_build.log"
     
     Write-ColorOutput $Yellow "Building $componentName..."
     
@@ -122,32 +153,50 @@ function Build-Component($componentName, $componentDir) {
         $cmakeArgs = "$cmakeArgs $profileArgs"
     }
     
+    # Add vcpkg toolchain file if VCPKG_ROOT is set and not in limited mode
+    if (-not $Limited) {
+        $vcpkgRoot = $env:VCPKG_ROOT
+        if ($vcpkgRoot) {
+            $vcpkgToolchain = Join-Path -Path $vcpkgRoot -ChildPath "scripts\buildsystems\vcpkg.cmake"
+            if (Test-Path $vcpkgToolchain) {
+                $cmakeArgs = "$cmakeArgs -DCMAKE_TOOLCHAIN_FILE=`"$vcpkgToolchain`" -DVCPKG_TARGET_TRIPLET=x64-windows"
+                Write-Output "Using vcpkg toolchain: $vcpkgToolchain"
+            }
+        }
+    } else {
+        # In limited mode, add special flags to try to work around dependency issues
+        $cmakeArgs = "$cmakeArgs -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE"
+        Write-Output "Using limited mode settings, disabling Boost requirements"
+    }
+    
     # Configure, build and install
     Push-Location "$componentDir\build"
     
     Write-Output "Configuring $componentName..."
     if ($cmakeArgs) {
-        Invoke-Expression "cmake $cmakeArgs .." | Out-File -FilePath $logFile
+        $cmakeCommand = "cmake $cmakeArgs .."
+        Write-Output "Command: $cmakeCommand"
+        Invoke-Expression $cmakeCommand | Out-File -FilePath $logFile
     } else {
         cmake .. | Out-File -FilePath $logFile
     }
     if (!$?) {
         Pop-Location
-        Error-Exit "Failed to configure $componentName. See $logFile for details."
+        Error-Exit "Failed to configure $componentName. See '$logFile' for details."
     }
     
     Write-Output "Building $componentName..."
     cmake --build . --config Release | Out-File -FilePath $logFile -Append
     if (!$?) {
         Pop-Location
-        Error-Exit "Failed to build $componentName. See $logFile for details."
+        Error-Exit "Failed to build $componentName. See '$logFile' for details."
     }
     
     Write-Output "Installing $componentName..."
     cmake --install . | Out-File -FilePath $logFile -Append
     if (!$?) {
         Pop-Location
-        Error-Exit "Failed to install $componentName. See $logFile for details."
+        Error-Exit "Failed to install $componentName. See '$logFile' for details."
     }
     
     Pop-Location
@@ -173,10 +222,12 @@ function Check-Prerequisites {
         Write-ColorOutput $Yellow "Warning: Visual Studio may not be installed. Make sure you have Visual Studio with C++ development tools installed."
     }
     
-    # Check for vcpkg (package manager)
-    if (!(Command-Exists "vcpkg")) {
-        Write-ColorOutput $Yellow "Warning: vcpkg not found. Consider installing it for managing dependencies."
-        Write-ColorOutput $Yellow "Visit https://github.com/Microsoft/vcpkg for installation instructions."
+    # Check for vcpkg (package manager) if not in limited mode
+    if (-not $Limited) {
+        if (!(Command-Exists "vcpkg")) {
+            Write-ColorOutput $Yellow "Warning: vcpkg not found. Consider installing it for managing dependencies."
+            Write-ColorOutput $Yellow "Visit https://github.com/Microsoft/vcpkg for installation instructions."
+        }
     }
     
     if ($missingTools.Count -gt 0) {
@@ -246,17 +297,8 @@ function Build-All {
     Write-ColorOutput $Green "All components have been built and installed successfully!"
 }
 
-# Parse command line arguments
-param(
-    [switch]$CheckOnly,
-    [string]$Component,
-    [string]$Profile,
-    [string]$Configure,
-    [switch]$Help
-)
-
 if ($Help) {
-    Write-Output "Usage: .\build.ps1 [-CheckOnly] [-Component <name>] [-Profile <name>] [-Configure <name>] [-Help]"
+    Write-Output "Usage: .\build.ps1 [-CheckOnly] [-Component <n>] [-Profile <n>] [-Configure <n>] [-Help]"
     Write-Output "Build OpenCog components."
     Write-Output ""
     Write-Output "Options:"

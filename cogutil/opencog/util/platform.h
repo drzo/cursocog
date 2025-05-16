@@ -30,7 +30,11 @@
 #pragma warning(disable:4290)
 
 #define strcasecmp _stricmp
-#define snprintf _snprintf
+
+// Only define snprintf as _snprintf for older Visual C++ compilers
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+  #define snprintf _snprintf
+#endif
 
 #endif // WIN32
 
@@ -49,14 +53,18 @@ char*              __strtok_r(char *s1, const char *s2, char **lasts);
 
 struct timezone {};
 
+#if !defined(_MSC_VER)
+// Only define these if not using Microsoft Visual C++ compiler
 int                round(float x);
+double             rint(double nr);
+unsigned long long atoll(const char *str);
+#endif
+
 char*              __strtok_r(char *s1, const char *s2, char **lasts);
 int                gettimeofday(struct timeval* tp, void* tzp);
 void               usleep(unsigned useconds);
 int                __getpid(void);
-double             rint(double nr);
 int                __dup2(int, int);
-unsigned long long atoll(const char *str);
 unsigned int       sleep(unsigned seconds);
 
 #endif // ~WIN32_NOT_UNIX

@@ -1,3 +1,19 @@
+param(
+    [Parameter(Position=0)]
+    [string]$Command,
+    
+    [Parameter(Position=1)]
+    [string]$Component,
+    
+    [Parameter(Position=2)]
+    [string]$Option,
+    
+    [Parameter(Position=3)]
+    [string]$Value,
+    
+    [switch]$Help
+)
+
 # OpenCog Component Configuration System
 # This script manages component-specific configuration options
 
@@ -182,23 +198,6 @@ function Show-ComponentConfig($component) {
         Get-ComponentConfig $component
     }
 }
-
-# Parse command line arguments
-param(
-    [Parameter(Position=0)]
-    [string]$Command,
-    
-    [Parameter(Position=1)]
-    [string]$Component,
-    
-    [Parameter(Position=2)]
-    [string]$Option,
-    
-    [Parameter(Position=3)]
-    [string]$Value,
-    
-    [switch]$Help
-)
 
 if ($Help -or !$Command) {
     Write-Output "Usage: .\component-config.ps1 <command> [options]"

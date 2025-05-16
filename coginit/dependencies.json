@@ -1,0 +1,58 @@
+[
+  {
+    "Description": "C++ utilities package",
+    "Essential": true,
+    "FileName": "boost_1_79_0.zip",
+    "Url": "https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.zip",
+    "Version": "1.79.0",
+    "Name": "boost"
+  },
+  {
+    "Description": "Build management tool",
+    "Essential": true,
+    "FileName": "cmake-3.25.1-windows-x86_64.zip",
+    "Url": "https://github.com/Kitware/CMake/releases/download/v3.25.1/cmake-3.25.1-windows-x86_64.zip",
+    "Version": "3.25.1",
+    "Name": "cmake"
+  },
+  {
+    "Description": "Unit test framework",
+    "Essential": true,
+    "FileName": "cxxtest-4.4.tar.gz",
+    "Url": "https://github.com/CxxTest/cxxtest/releases/download/4.4/cxxtest-4.4.tar.gz",
+    "Version": "4.4",
+    "Name": "cxxtest"
+  },
+  {
+    "Description": "Embedded scheme REPL",
+    "Essential": true,
+    "FileName": "guile-3.0.9.tar.gz",
+    "Url": "https://ftp.gnu.org/gnu/guile/guile-3.0.9.tar.gz",
+    "Version": "3.0.9",
+    "Name": "guile"
+  },
+  {
+    "Description": "SSL/TLS implementation",
+    "Essential": false,
+    "FileName": "openssl-3.0.8.tar.gz",
+    "Url": "https://www.openssl.org/source/openssl-3.0.8.tar.gz",
+    "Version": "3.0.8",
+    "Name": "openssl"
+  },
+  {
+    "Description": "GNU Binary File Description library",
+    "Essential": false,
+    "FileName": "binutils-2.39.tar.gz",
+    "Url": "https://ftp.gnu.org/gnu/binutils/binutils-2.39.tar.gz",
+    "Version": "2.39",
+    "Name": "binutils"
+  },
+  {
+    "Description": "Documentation generator",
+    "Essential": false,
+    "FileName": "doxygen-1.9.6.windows.bin.zip",
+    "Url": "https://www.doxygen.nl/files/doxygen-1.9.6.windows.bin.zip",
+    "Version": "1.9.6",
+    "Name": "doxygen"
+  }
+]
