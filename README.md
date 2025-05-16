@@ -120,6 +120,39 @@ For specific components:
 .\build.ps1 -Component cogutil
 ```
 
+## Installation Packages
+
+OpenCog provides pre-built installation packages for major platforms:
+
+### Linux
+```bash
+# Create DEB and RPM packages
+./scripts/create-packages.sh
+```
+
+### macOS
+```bash
+# Create DMG package
+./scripts/create-macos-package.sh
+```
+
+### Windows
+```powershell
+# Create Windows installer
+.\scripts\create-windows-installer.ps1
+
+# Create Chocolatey package
+.\scripts\create-chocolatey-package.ps1
+```
+
+### Continuous Integration
+
+OpenCog uses GitHub Actions for automated testing and package building:
+
+- **Cross-Platform Testing**: Tests run on Linux, macOS, and Windows with different AtomSpace backends
+- **Package Building**: Automated builds of installation packages for all platforms
+- **Release Automation**: Automatic publishing of packages when tags are created
+
 ### Manual Building
 
 To build manually, follow this order:

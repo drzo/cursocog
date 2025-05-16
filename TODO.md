@@ -84,15 +84,15 @@
    - [x] Created Windows installer script (NSIS)
    - [x] Created Chocolatey package script for Windows
    - [x] Added package creation documentation to README
-   - [ ] Create macOS package (DMG)
-   - [ ] Add automated package building to CI
+   - [x] Create macOS package (DMG)
+   - [x] Add automated package building to CI
 
 5. Multi-Platform Testing
    - [x] Created test scripts for Linux and Windows
    - [x] Added platform-specific checks in test scripts
    - [x] Updated documentation with platform requirements
-   - [ ] Create comprehensive test matrix for all platforms
-   - [ ] Add automated multi-platform testing to CI
+   - [x] Create comprehensive test matrix for all platforms
+   - [x] Add automated multi-platform testing to CI
 
 ### Additional Future Tasks
 1. Complete Clay UI integration
