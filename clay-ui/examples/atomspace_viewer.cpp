@@ -2,13 +2,7 @@
 #include "../include/clay.h"
 #include "../include/opencog_renderer.h"
 #include "../include/opencog_atomspace_bridge.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-
-// Global statestatic float g_mouseX = 0;static float g_mouseY = 0;static bool g_mousePressed = false;static float g_mouseWheel = 0;static bool g_atomSpaceConnected = false;static const char* g_selectedAtomId = nullptr;static int g_currentView = 0; // 0 = graph, 1 = query, 2 = settingsstatic char g_storageType[64] = "rocks"; // Default storage typestatic char g_storageURI[256] = "rocks:///tmp/atomspace-rocks"; // Default URI// Define storage optionstypedef struct {    const char* name;    const char* description;    const char* default_uri;} StorageOption;const StorageOption STORAGE_OPTIONS[] = {    {"rocks", "RocksDB local storage", "rocks:///tmp/atomspace-rocks"},    {"cogserver", "CogServer network storage", "cog://localhost:17001"},    {"postgres", "PostgreSQL database storage", "postgres://localhost/atomspace?user=opencog&password=password"}};const int NUM_STORAGE_OPTIONS = sizeof(STORAGE_OPTIONS) / sizeof(StorageOption);
-static char g_storageType[64] = "rocks"; // Default storage type
-static char g_storageURI[256] = "rocks:///tmp/atomspace-rocks"; // Default URI
+#include <stdio.h>#include <stdlib.h>#include <string>// Global statestatic float g_mouseX = 0;static float g_mouseY = 0;static bool g_mousePressed = false;static float g_mouseWheel = 0;static bool g_atomSpaceConnected = false;static const char* g_selectedAtomId = nullptr;static int g_currentView = 0; // 0 = graph, 1 = query, 2 = settingsstatic char g_storageType[64] = "rocks"; // Default storage typestatic char g_storageURI[256] = "rocks:///tmp/atomspace-rocks"; // Default URI// Define storage optionstypedef struct {    const char* name;    const char* description;    const char* default_uri;} StorageOption;const StorageOption STORAGE_OPTIONS[] = {    {"rocks", "RocksDB local storage", "rocks:///tmp/atomspace-rocks"},    {"cogserver", "CogServer network storage", "cog://localhost:17001"},    {"postgres", "PostgreSQL database storage", "postgres://localhost/atomspace?user=opencog&password=password"}};const int NUM_STORAGE_OPTIONS = sizeof(STORAGE_OPTIONS) / sizeof(StorageOption);
 
 // Define storage options
 typedef struct {
