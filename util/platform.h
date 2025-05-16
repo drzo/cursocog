@@ -28,7 +28,6 @@
 #include "cpp_keywords.h"
 
 #ifdef WIN32
-
 #pragma warning(disable:4290)
 
 #define strcasecmp _stricmp
@@ -38,10 +37,8 @@
   #define snprintf _snprintf
 #endif
 
-// Include our Windows compatibility headers
-#include "winunistd.h"
-#include "winstrings.h"
-#include "getopt.h"
+// Include our Windows compatibility fix
+#include "../../windows_patches.h"
 
 #endif // WIN32
 
