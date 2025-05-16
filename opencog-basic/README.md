@@ -49,6 +49,26 @@ Basic example to start a CogServer:
 ./opencog-basic/cogserver/build/opencog/cogserver/server/cogserver
 ```
 
+## Learning Resources
+
+### AtomSpace Examples
+
+A collection of example scripts is provided to help you learn how to use AtomSpace:
+
+- **Basic AtomSpace Examples**: Fundamental concepts and operations
+- **RocksDB Persistence**: How to store and retrieve AtomSpace data
+- **Pattern Matching**: Advanced querying and knowledge discovery
+
+```bash
+# Location of examples
+cd examples/atomspace-examples
+
+# Load an example in Guile
+guile -l basic_atomspace.scm
+```
+
+See the [examples README](examples/atomspace-examples/README.md) for more details.
+
 ## Advanced Components
 
 For advanced functionality, you may want to add additional components:
@@ -58,6 +78,40 @@ For advanced functionality, you may want to add additional components:
 
 These can be enabled by uncommenting the respective entries in repos-basic.txt
 and running the clone script again.
+
+## Graphical User Interface
+
+OpenCog Basic includes Clay UI, a visualization and interaction system for OpenCog components:
+
+### OpenCog Dashboard
+
+The Dashboard provides a user-friendly interface for:
+- Installing dependencies
+- Building components
+- Accessing tutorials
+- Visualizing the AtomSpace
+
+To launch the dashboard:
+
+```bash
+# On Linux
+./opencog-dashboard.sh
+
+# On Windows
+opencog-dashboard.bat
+```
+
+### AtomSpace Viewer
+
+A dedicated tool for visualizing and interacting with the AtomSpace:
+
+```bash
+# Build and run
+cd clay-ui/build
+cmake ..
+cmake --build . --target atomspace-viewer
+./atomspace-viewer
+```
 
 ## Dependency Management with CogInit
 
