@@ -25,6 +25,8 @@
 #ifndef _OPENCOG_PLATFORM_H
 #define _OPENCOG_PLATFORM_H
 
+#include "cpp_keywords.h"
+
 #ifdef WIN32
 
 #pragma warning(disable:4290)
@@ -35,6 +37,11 @@
 #if defined(_MSC_VER) && (_MSC_VER < 1900)
   #define snprintf _snprintf
 #endif
+
+// Include our Windows compatibility headers
+#include "winunistd.h"
+#include "winstrings.h"
+#include "getopt.h"
 
 #endif // WIN32
 
@@ -50,10 +57,6 @@ char*              __strtok_r(char *s1, const char *s2, char **lasts);
 
 #ifdef WIN32_NOT_UNIX
 
-#define M_PI 3.14159265358979323846
-
-struct timezone {};
-
 // Don't redefine functions that are now part of standard C++
 #if !defined(_MSC_VER) || (_MSC_VER < 1800) // Visual Studio 2013 and earlier
 int                round(float x);
@@ -61,12 +64,15 @@ double             rint(double nr);
 unsigned long long atoll(const char *str);
 #endif
 
+// These are now handled in the winunistd.h and winstrings.h files
+#if !defined(WIN32)
 char*              __strtok_r(char *s1, const char *s2, char **lasts);
 int                gettimeofday(struct timeval* tp, void* tzp);
 void               usleep(unsigned useconds);
 int                __getpid(void);
 int                __dup2(int, int);
 unsigned int       sleep(unsigned seconds);
+#endif
 
 #endif // ~WIN32_NOT_UNIX
 
@@ -93,4 +99,4 @@ void set_thread_name(const char* name);
 /** @}*/
 } // namespace opencog
 
-#endif // _OPENCOG_PLATFORM_H
+#endif // _OPENCOG_PLATFORM_H 
