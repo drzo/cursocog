@@ -7,18 +7,20 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    include
 )
 
 # Check if OpenGL is available
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
 
 # Main library
 add_library(clay-ui INTERFACE)
@@ -83,6 +85,13 @@ target_link_libraries(atomspace-viewer
     clay-ui-atomspace
 )
 
+# Add dashboard application
+add_executable(dashboard examples/dashboard.cpp)
+target_link_libraries(dashboard
+    clay-ui
+    ${OPENGL_LIBRARIES}
+)
+
 # Installation
 install(TARGETS clay-ui clay-ui-renderer clay-ui-atomspace
     EXPORT clay-ui-targets
@@ -118,4 +127,7 @@ configure_package_config_file(
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/clay-ui-config.cmake
     DESTINATION lib/cmake/clay-ui
-) 
+)
+
+# Display information
+message(STATUS "Clay UI configured with OpenGL: ${OPENGL_LIBRARIES}") 

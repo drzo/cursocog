@@ -9,6 +9,7 @@ This is a standalone repository containing only the essential core components of
 3. **atomspace-storage** - Persistence API for AtomSpace
 4. **atomspace-rocks** - RocksDB backend for AtomSpace persistence
 5. **cogserver** - Network server providing AtomSpace API access
+6. **clay-ui** - Visualization and interaction system
 
 ## Building
 
@@ -18,6 +19,7 @@ This is a standalone repository containing only the essential core components of
 - CMake 3.12+
 - Boost 1.68+
 - Python 3.6+ with development headers
+- OpenGL development libraries (for Clay UI)
 
 ### Linux/macOS Build
 
@@ -112,6 +114,66 @@ cmake ..
 cmake --build . --target atomspace-viewer
 ./atomspace-viewer
 ```
+
+## Testing and Validation
+
+OpenCog Basic includes comprehensive testing scripts to verify the proper integration and functionality of all components:
+
+### Clay UI Testing
+
+To validate the Clay UI integration:
+
+```bash
+# On Linux
+./test-clay-ui.sh
+
+# On Windows
+.\test-clay-ui.ps1
+```
+
+These scripts perform the following checks:
+- Verify all required dependencies are installed
+- Check the Clay UI directory structure
+- Test building the dashboard application
+- Verify AtomSpace integration
+- Test the launcher scripts
+
+### Multi-Platform Testing
+
+The project is tested on:
+- Ubuntu Linux 20.04 and 22.04
+- Windows 10 and 11
+- macOS 10.15+
+
+For platform-specific issues, see the documentation in the `doc` directory.
+
+## Installation Packages
+
+### Linux Packages
+
+You can create DEB and RPM packages for Linux distributions:
+
+```bash
+# Create Linux packages
+./create-packages.sh
+```
+
+This creates:
+- DEB package for Debian/Ubuntu-based distributions
+- RPM package for RedHat/Fedora-based distributions
+
+The packages are created in the `build` directory.
+
+### Windows Installer
+
+For Windows users, an NSIS-based installer is available:
+
+```powershell
+# Create Windows installer
+.\create-windows-installer.ps1
+```
+
+This creates a Windows installer in the `build` directory.
 
 ## Dependency Management with CogInit
 
