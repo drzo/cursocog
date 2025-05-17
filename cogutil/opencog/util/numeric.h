@@ -23,6 +23,7 @@
 #ifndef _OPENCOG_NUMERIC_H
 #define _OPENCOG_NUMERIC_H
 
+#include "macros.h"
 #include <algorithm> // for std::max
 #include <cmath>
 #include <climits>

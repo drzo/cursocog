@@ -25,8 +25,12 @@
 #ifndef _OPENCOG_PLATFORM_H
 #define _OPENCOG_PLATFORM_H
 
-#ifdef WIN32
+// For MSVC, include iso646.h for alternative operator names (and, or, not...)
+#ifdef _MSC_VER
+#include <iso646.h>
+#endif
 
+#ifdef WIN32
 #pragma warning(disable:4290)
 
 #define strcasecmp _stricmp
@@ -35,6 +39,13 @@
 #if defined(_MSC_VER) && (_MSC_VER < 1900)
   #define snprintf _snprintf
 #endif
+
+// Rather than individual headers, use our comprehensive windows_patches.h
+#include "../../windows_patches.h"
+
+// Windows C++ math definitions
+#define M_PI 3.14159265358979323846
+#define SIGCHLD 17  // Child stop or terminate
 
 #endif // WIN32
 
@@ -49,8 +60,6 @@ char*              __strtok_r(char *s1, const char *s2, char **lasts);
 #endif
 
 #ifdef WIN32_NOT_UNIX
-
-#define M_PI 3.14159265358979323846
 
 struct timezone {};
 

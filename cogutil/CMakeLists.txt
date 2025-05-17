@@ -68,7 +68,7 @@ SET(SEMANTIC_VERSION ${CMAKE_MATCH_1})
 include(cmake/OpenCogGccOptions.cmake)
 
 # ------------------------------------------------------
-IF (WIN32 AND NOT CYGWIN) # Windows host but not cygwin
+IF (WIN32) # Windows host
 	MESSAGE(STATUS "Building on Windows with MSVC.")
 	
 	# Add Windows-specific settings
@@ -88,13 +88,7 @@ IF (WIN32 AND NOT CYGWIN) # Windows host but not cygwin
 	
 	# Configure Boost to work with MSVC
 	SET(Boost_USE_STATIC_RUNTIME OFF)
-	
-	# Use submodule paths for files
-	IF(CMAKE_VS_PLATFORM_TOOLSET MATCHES "v140" OR CMAKE_VS_PLATFORM_TOOLSET MATCHES "v141" OR CMAKE_VS_PLATFORM_TOOLSET MATCHES "v142" OR CMAKE_VS_PLATFORM_TOOLSET MATCHES "v143")
-		ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
-		ADD_DEFINITIONS(-D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
-	ENDIF()
-ENDIF (WIN32 AND NOT CYGWIN)
+ENDIF (WIN32)
 
 # Do the cygwin build
 IF (CYGWIN)

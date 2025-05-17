@@ -26,6 +26,7 @@
 #define _OPENCOG_LAZY_SELECTOR_H
 
 #include <unordered_set>
+#include "macros.h"
 
 namespace opencog
 {

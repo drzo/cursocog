@@ -1,3 +1,4 @@
+#include "platform.h"
 /** oc_omp.cc ---
  *
  * Copyright (C) 2011 Nil Geisweiller

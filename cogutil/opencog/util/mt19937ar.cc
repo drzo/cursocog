@@ -1,3 +1,4 @@
+#include "platform.h"
 /*
  * Modifications of original are
  *

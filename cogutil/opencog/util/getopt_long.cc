@@ -1,3 +1,4 @@
+#include "platform.h"
 /*
  * getopt_long.cc
  *

@@ -4,7 +4,10 @@ param(
     [string]$Profile,
     [string]$Configure,
     [switch]$Help,
-    [switch]$Limited
+    [switch]$Limited,
+    [switch]$InstallDependencies,
+    [switch]$WSL,
+    [switch]$Docker
 )
 
 # OpenCog Build Script for Windows
@@ -297,23 +300,126 @@ function Build-All {
     Write-ColorOutput $Green "All components have been built and installed successfully!"
 }
 
-if ($Help) {
-    Write-Output "Usage: .\build.ps1 [-CheckOnly] [-Component <n>] [-Profile <n>] [-Configure <n>] [-Help]"
-    Write-Output "Build OpenCog components."
-    Write-Output ""
-    Write-Output "Options:"
-    Write-Output "  -CheckOnly      Check prerequisites only without building"
-    Write-Output "  -Component      Build a specific component"
-    Write-Output "  -Profile        Use a specific build profile"
-    Write-Output "  -Configure      Configure a specific component"
-    Write-Output "  -Help           Display this help and exit"
-    Write-Output ""
-    Write-Output "Build profiles:"
-    Write-Output "  minimal       Minimal build with core components only"
-    Write-Output "  standard      Standard build with common components"
-    Write-Output "  development   Development build with all components and debug symbols"
-    Write-Output "  performance   Performance-optimized build"
-    Write-Output ""
+# Show help information
+function Show-Help {
+    Write-Host "OpenCog Build Script for Windows" -ForegroundColor Cyan
+    Write-Host "===============================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Usage: .\build.ps1 [options]" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Options:" -ForegroundColor Yellow
+    Write-Host "  -CheckOnly              : Check prerequisites only without building" -ForegroundColor White
+    Write-Host "  -Component              : Build a specific component" -ForegroundColor White
+    Write-Host "  -Profile                : Use a specific build profile" -ForegroundColor White
+    Write-Host "  -Configure              : Configure a specific component" -ForegroundColor White
+    Write-Host "  -Help                   : Show this help message" -ForegroundColor White
+    Write-Host "  -InstallDependencies    : Install required dependencies" -ForegroundColor White
+    Write-Host "  -WSL                    : Set up and use WSL (recommended)" -ForegroundColor White
+    Write-Host "  -Docker                 : Set up and use Docker" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Examples:" -ForegroundColor Yellow
+    Write-Host "  .\build.ps1 -WSL               # Set up OpenCog in WSL (recommended)" -ForegroundColor White
+    Write-Host "  .\build.ps1 -Docker            # Set up OpenCog in Docker" -ForegroundColor White
+    Write-Host "  .\build.ps1 -InstallDependencies # Install dependencies for native build (challenging)" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Note: Native Windows builds are extremely challenging and not recommended." -ForegroundColor Red
+    Write-Host "      WSL or Docker are the preferred methods for running OpenCog on Windows." -ForegroundColor Red
+}
+
+# If no options specified or help requested, show help and exit
+if ($Help -or ($PSBoundParameters.Count -eq 0)) {
+    Show-Help
+    exit 0
+}
+
+# Process WSL option
+if ($WSL) {
+    Write-Host "Setting up OpenCog in WSL (recommended approach)..." -ForegroundColor Green
+    
+    # Check if WSL setup script exists, if not, create it
+    if (-not (Test-Path "setup-opencog-wsl.ps1")) {
+        Write-Host "Creating WSL setup script..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/opencog/opencog/master/scripts/setup-opencog-wsl.ps1" -OutFile "setup-opencog-wsl.ps1" -ErrorAction SilentlyContinue
+        
+        # If download failed, create a minimal script
+        if (-not (Test-Path "setup-opencog-wsl.ps1")) {
+            @'
+# WSL Setup Script for OpenCog
+Write-Host "Installing WSL..." -ForegroundColor Yellow
+wsl --install -d Ubuntu
+Write-Host "Please restart your computer after WSL installation completes." -ForegroundColor Green
+Write-Host "After restart, run this script again to continue setup." -ForegroundColor Green
+'@ | Out-File -FilePath "setup-opencog-wsl.ps1" -Encoding utf8
+        }
+    }
+    
+    # Run the WSL setup script
+    & .\setup-opencog-wsl.ps1
+    exit 0
+}
+
+# Process Docker option
+if ($Docker) {
+    Write-Host "Setting up OpenCog using Docker..." -ForegroundColor Green
+    
+    # Check if Docker setup script exists, if not create it
+    if (-not (Test-Path "setup-opencog-docker.ps1")) {
+        Write-Host "Creating Docker setup script..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/opencog/opencog/master/scripts/setup-opencog-docker.ps1" -OutFile "setup-opencog-docker.ps1" -ErrorAction SilentlyContinue
+        
+        # If download failed, create a minimal script
+        if (-not (Test-Path "setup-opencog-docker.ps1")) {
+            @'
+# Docker Setup Script for OpenCog
+Write-Host "Checking Docker installation..." -ForegroundColor Yellow
+$dockerCheck = docker --version 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Docker is not installed. Please install Docker Desktop for Windows first:" -ForegroundColor Red
+    Write-Host "https://www.docker.com/products/docker-desktop/" -ForegroundColor Yellow
+    exit 1
+}
+Write-Host "Pulling OpenCog Docker images..." -ForegroundColor Yellow
+docker pull opencog/opencog-dev
+Write-Host "Done! Run 'docker run -it -v ${PWD}:/opencog opencog/opencog-dev bash' to start." -ForegroundColor Green
+'@ | Out-File -FilePath "setup-opencog-docker.ps1" -Encoding utf8
+        }
+    }
+    
+    # Run the Docker setup script
+    & .\setup-opencog-docker.ps1
+    exit 0
+}
+
+# Process install dependencies option
+if ($InstallDependencies) {
+    Write-Host "Installing dependencies for native Windows build..." -ForegroundColor Yellow
+    Write-Host "WARNING: Native Windows builds are extremely challenging and not recommended." -ForegroundColor Red
+    Write-Host "         Consider using WSL or Docker instead (use -WSL or -Docker options)." -ForegroundColor Red
+    
+    $continue = Read-Host "Continue with native Windows build setup? (y/N)"
+    if ($continue -ne "y" -and $continue -ne "Y") {
+        Write-Host "Operation cancelled. Run '.\build.ps1 -Help' to see other options." -ForegroundColor Yellow
+        exit 0
+    }
+    
+    # Install dependencies using vcpkg
+    Write-Host "Setting up vcpkg for dependency management..." -ForegroundColor Yellow
+    
+    # Check if vcpkg exists
+    if (-not (Test-Path "vcpkg")) {
+        Write-Host "Cloning vcpkg repository..." -ForegroundColor Yellow
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+        cd ..
+    }
+    
+    # Install dependencies using vcpkg
+    Write-Host "Installing required dependencies via vcpkg..." -ForegroundColor Yellow
+    .\vcpkg\vcpkg install boost-filesystem:x64-windows boost-program-options:x64-windows boost-system:x64-windows boost-thread:x64-windows boost-algorithm:x64-windows boost-lexical-cast:x64-windows
+    
+    Write-Host "Dependencies installed. Note that native Windows builds may still fail due to compatibility issues." -ForegroundColor Yellow
+    Write-Host "Consider using WSL or Docker for a more reliable experience (use -WSL or -Docker options)." -ForegroundColor Yellow
     exit 0
 }
 

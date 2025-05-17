@@ -1,3 +1,4 @@
+#include "platform.h"
 /*
  * src/util/misc.h
 *

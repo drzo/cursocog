@@ -231,3 +231,25 @@ void opencog::set_thread_name(const char* name)
     prctl(PR_SET_NAME, name, 0, 0, 0);
 }
 #endif // __APPLE__
+
+#include <cmath>
+#include <string>
+
+#ifdef WIN32
+#pragma warning(disable: 4273) // Inconsistent dll linkage
+#endif
+
+#ifndef WIN32
+#include <unistd.h>
+#include <sys/time.h>
+#endif
+
+#ifdef __APPLE__
+#include <mach/mach.h>
+#endif // __APPLE__
+
+#ifdef __sun__
+#include <sys/types.h>
+#include <sys/processor.h>
+#include <sys/procset.h>
+#endif // __sun__

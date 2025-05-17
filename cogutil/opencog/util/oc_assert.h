@@ -27,6 +27,7 @@
 #define _OPENCOG_ASSERT_H
 
 #include <opencog/util/exceptions.h>
+#include "macros.h"
 
 /** \addtogroup grp_cogutil
  *  @{

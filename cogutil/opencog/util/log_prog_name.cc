@@ -1,3 +1,4 @@
+#include "platform.h"
 /** log_prog_name.cc ---
  *
  * Copyright (C) 2011 OpenCog Foundation

@@ -1,3 +1,4 @@
+#include "platform.h"
 /*
  * opencog/util/octime.cc
  *
